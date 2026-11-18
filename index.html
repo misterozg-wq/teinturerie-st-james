@@ -108,6 +108,7 @@ footer .wrap{padding-block:28px;display:flex;justify-content:space-between;gap:1
 }
 @media (max-width:480px){ .retouches ul{grid-template-columns:1fr} nav{gap:14px} }
 @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+.addr{white-space:pre-line}
 </style>
 </head>
 <body>
@@ -125,12 +126,12 @@ footer .wrap{padding-block:28px;display:flex;justify-content:space-between;gap:1
 </header>
 
 <main>
-  <section class="hero" aria-labelledby="titre">
+  <section class="hero" aria-labelledby="titre" data-cms-fond>
     <div class="wrap">
       <div>
         <p class="label">Pressing · Paris 16e</p>
         <h1 id="titre">Vos vêtements entretenus <em>avec soin</em>, au cœur du 16e.</h1>
-        <p>Nettoyage à sec, chemises, costumes, robes et linge de maison. Un savoir-faire de pressing pour les pièces du quotidien comme pour les plus délicates, et un service de retouches sur place.</p>
+        <p data-cms="intro">Nettoyage à sec, chemises, costumes, robes et linge de maison. Un savoir-faire de pressing pour les pièces du quotidien comme pour les plus délicates, et un service de retouches sur place.</p>
         <div class="cta">
           <a class="btn primary" href="#services">Nos prestations</a>
           <a class="btn ghost" href="#contact">Nous trouver</a>
@@ -201,8 +202,10 @@ footer .wrap{padding-block:28px;display:flex;justify-content:space-between;gap:1
         <h2 id="t-contact">Passez nous voir</h2>
       </div>
       <div class="contact-grid">
-        <div class="card"><span class="label">Adresse</span><span class="val">97 avenue Raymond Poincaré<br>angle rue de Sfax<br>75016 Paris</span></div>
-        <div class="card"><span class="label">Téléphone</span><span class="val" id="tel">01 89 33 17 36</span><button class="copy" data-copy="tel" type="button">Copier</button></div>
+        <div class="card"><span class="label">Adresse</span><span class="val addr" data-cms="adresse">97 avenue Raymond Poincaré
+angle rue de Sfax
+75016 Paris</span></div>
+        <div class="card"><span class="label">Téléphone</span><span class="val" id="tel" data-cms="tel">01 89 33 17 36</span><button class="copy" data-copy="tel" type="button">Copier</button></div>
       </div>
     </div>
   </section>
@@ -211,7 +214,7 @@ footer .wrap{padding-block:28px;display:flex;justify-content:space-between;gap:1
 <footer>
   <div class="wrap">
     <span>© Teinturerie St James · SARL GUNDES</span>
-    <span>97 avenue Raymond Poincaré (angle rue de Sfax), 75016 Paris</span>
+    <span data-cms="adresse_ligne">97 avenue Raymond Poincaré (angle rue de Sfax), 75016 Paris</span>
   </div>
 </footer>
 
@@ -226,5 +229,29 @@ document.querySelectorAll('.copy').forEach(function(b){
 });
 </script>
 
+
+<script>
+(function(){
+  var CMS_URL='__CMS_URL__', SITE='teinturerie-st-james', OVERLAY='linear-gradient(color-mix(in srgb, var(--bg) 84%, transparent), color-mix(in srgb, var(--bg) 84%, transparent))';
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function apply(c){
+    if(!c)return;
+    document.querySelectorAll('[data-cms]').forEach(function(el){
+      var k=el.getAttribute('data-cms'),v=c[k];
+      if(k==='adresse_ligne'&&c.adresse){el.textContent=c.adresse.replace(/\s*\n\s*/g,', ');return;}
+      if(v==null||v==='')return;
+      if(k==='horaires'&&Array.isArray(v)){
+        el.innerHTML=v.map(function(r){return '<tr'+(/ferm/i.test(r.heures)?' class="closed"':'')+'><td>'+esc(r.jour)+'</td><td>'+esc(r.heures)+'</td></tr>';}).join('');
+      }else if(k==='photos'&&Array.isArray(v)){
+        el.innerHTML=v.filter(function(p){return p.src;}).map(function(p,i){return '<figure class="ph'+(i===0?' big':'')+'"><img src="'+esc(p.src)+'" alt="'+esc(p.titre)+'" loading="lazy"><figcaption><strong>'+esc(p.titre)+'</strong><span>'+esc(p.legende)+'</span></figcaption></figure>';}).join('');
+        var cr=document.querySelector('.credits');if(cr)cr.hidden=true;
+      }else if(typeof v==='string'){el.textContent=v;}
+    });
+    if(c.fond){var h=document.querySelector('[data-cms-fond]');if(h){h.style.backgroundImage=OVERLAY+', url("'+c.fond.replace(/"/g,'%22')+'")';h.style.backgroundSize='cover';h.style.backgroundPosition='center';h.classList.add('has-fond');}}
+  }
+  if(CMS_URL.indexOf('http')!==0)return;
+  fetch(CMS_URL+'?site='+SITE).then(function(r){return r.json();}).then(function(j){if(j&&j.ok)apply(j.contenu);}).catch(function(){});
+})();
+</script>
 </body>
 </html>
